@@ -1,6 +1,6 @@
 {
   "name": "@root_ish/coral",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An extension package for CSS Snap Scroll",
   "main": "lib/core.js",
   "directories": {
