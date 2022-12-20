@@ -1,0 +1,52 @@
+{
+  "name": "@root_ish/coral",
+  "version": "1.0.0",
+  "description": "An extension package for CSS Snap Scroll",
+  "main": "lib/core.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Root-ish/Coral.git"
+  },
+  "keywords": [
+    "CSS",
+    "Scroll",
+    "Snap"
+  ],
+  "author": "Surf Turf",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Root-ish/Coral/issues"
+  },
+  "homepage": "https://github.com/Root-ish/Coral#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.18.10",
+    "@babel/core": "^7.20.2",
+    "@babel/plugin-proposal-class-properties": "^7.17.12",
+    "@babel/polyfill": "^7.12.1",
+    "@babel/preset-env": "^7.18.10",
+    "babel-eslint": "^10.1.0",
+    "babel-loader": "^8.2.5",
+    "babel-preset-minify": "^0.5.2",
+    "css-loader": "^6.7.1",
+    "css-minimizer-webpack-plugin": "^4.0.0",
+    "eslint": "^8.21.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "lint-staged": "^10.5.4"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
+  },
+  "dependencies": {
+    "uglify-js": "^3.17.4"
+  }
+}

@@ -1,0 +1,55 @@
+.coral-scroll {
+  position: relative;
+  display: flex;
+
+  &__slider { 
+    position: relative;
+    display: flex;
+    overflow: scroll;
+    width: 100%;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .slide {
+      overflow: hidden;
+      flex: 0 0 100%;
+      height: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+
+    img {
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__grab-overlay {
+    position: absolute;
+    z-index: 50;
+    top: 0;
+    right: 0;
+    left: 0;
+    display: none;
+    width: 100vw;
+    height: 100%;
+    content: '';
+    background-color: transparent;
+
+    &.js-active {
+      display: block;
+      cursor: grabbing;
+    }
+  }
+
+  &__arrows {
+    .arrow {
+      cursor: pointer;
+    }
+  }
+}
