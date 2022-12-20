@@ -331,7 +331,6 @@ export class CoralScrollCore {
     }
   }
 
-
   /**
    * Set scroll position without scrolling.
    */
@@ -606,6 +605,36 @@ export class CoralScrollCore {
 
     // Send new slide event.
     this.sendEventScrolledToNewSlide(newSlide)
+  }
+
+  /**
+   * Set new slide position as active.
+   * 
+   * @param {Number} slideIndex 
+   */
+  setActiveSlide = (slideIndex) => {
+    this.setActiveIndicator(slideIndex)
+    this.setActiveThumb(slideIndex)
+    this.setScrollPosition(slideIndex)
+    this.setStylingArrows(slideIndex)
+
+    // Send new slide event.
+    this.sendEventScrolledToNewSlide(slideIndex)
+  }
+
+  /**
+   * Set new slide position as active without.
+   * 
+   * @param {Number} slideIndex 
+   */
+  setActiveSlideWithoutScroll = (slideIndex) => {
+    this.setActiveIndicator(slideIndex)
+    this.setActiveThumb(slideIndex)
+    this.setScrollPositionWithoutScroll(Number(slideIndex))
+    this.setStylingArrows(slideIndex)
+
+    // Send new slide event.
+    this.sendEventScrolledToNewSlide(slideIndex)
   }
 
   /**
