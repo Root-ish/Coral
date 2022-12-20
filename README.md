@@ -7,10 +7,10 @@
 <br>
 
 ## Instalation
-Install the package using `yarn install @surf-turf/coral` and import the JS and CSS
+Install the package using `yarn install @root_ish/coral` and import the JS and CSS
 
 ``` scss 
-@import url('@surf-turf/coral/lib/coral-scroll.css');
+@import url('@root_ish/coral/lib/coral-scroll.css');
 ```
 
 ## How to use
@@ -52,6 +52,8 @@ Install the package using `yarn install @surf-turf/coral` and import the JS and 
 To connect the JS with the HTML you can use the CoralScrollCore class however you like.
 
 ``` js
+import CoralScrollCore from '@root_ish/coral'
+
 class CoralScrollElement extends HTMLElement {
   constructor() {
     super()
@@ -62,7 +64,8 @@ class CoralScrollElement extends HTMLElement {
   }
 }
 
-// // Check if element is defined, if not define it..
+// Check if element is defined, if not define it.
+// eslint-disable-next-line no-undefined
 if (customElements.get('coral-scroll') === undefined) {
   customElements.define('coral-scroll', CoralScrollElement)
 }
