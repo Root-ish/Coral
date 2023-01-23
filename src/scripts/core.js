@@ -15,6 +15,7 @@ export class CoralScrollCore {
     this.coralScrollId = Date.now()
     // The shadow active slide position is used to scroll without setting an active slide. (Used for the thumbs slider)
     this.shadowActiveSlidePosition = 0
+    this.handleInterval
     this.initializeSlider()
     this.oberserverConfig = {
       attributes: false,
@@ -261,7 +262,7 @@ export class CoralScrollCore {
     const thumbsSliderClassName = this.sliderConfig.enableThumbs
     const allThumbsSliderElements = document.querySelectorAll(`.${thumbsSliderClassName}`)
 
-    allThumbsSliderElements.forEach((thumbsSliderElement) => {
+    allThumbsSliderElements?.forEach((thumbsSliderElement) => {
       if (this.sliderConfig.isThumbsSlider === false && thumbsSliderElement) {
         const allThumbsElement = thumbsSliderElement.querySelectorAll('.slide')
         const allSlideElements = this.sliderElement.querySelectorAll('.slide:not(.js-hidden)')
@@ -269,7 +270,7 @@ export class CoralScrollCore {
 
         // Check if activeSlide is a clone.
         const slideElement = arrayOfAllSlideElements[activeSlidePostion]
-        const iamgeIdActiveSlide = slideElement.dataset.imageId
+        const iamgeIdActiveSlide = slideElement?.dataset.imageId
         const isClone = slideElement?.classList.contains('js-clone')
 
         allThumbsElement.forEach((thumbElement) => {
@@ -512,13 +513,13 @@ export class CoralScrollCore {
    */
   setListenersToThumbs = () => {
     if (this.sliderConfig.isThumbsSlider) {
-      const allThumbSlides = this.sliderElement.querySelectorAll('.slide:not(.js-hidden)')
+      const allThumbSlides = this.sliderElement.querySelectorAll('.slide:not(.js-hidden):not(.js-clone)')
       const arrayOfAllSlides = [...allThumbSlides]
       const parentSliderClassName = this.coralScrollElement.dataset.thumbsParentClass
 
       // Set event listener on thumb.
       arrayOfAllSlides?.map((thumbElement, index) => {
-        const newSlideIndex = index
+        let newSlideIndex = index
 
         thumbElement.addEventListener('click', () => {
           this.sendEventRequestToScrollToNewSlide(newSlideIndex, parentSliderClassName)
@@ -588,6 +589,9 @@ export class CoralScrollCore {
     }
   }, 10)
 
+  /**
+   * Set clonse of slides for infitite scroll.
+   */
   setClonesOfSlideForInifiteScroll = () => {
     if (this.sliderConfig.infinite === true) {
       if (this.sliderElement.dataset.clonesActive !== 'true') {
@@ -599,14 +603,32 @@ export class CoralScrollCore {
           : null
 
         this.sliderElement.dataset.clonesActive = 'true'
-        arrayOfAllSlideElements.map((slideElement, index) => {
-          const cloneSlide = slideElement.cloneNode(true)
-          cloneSlide.classList.add('js-clone')
-          cloneSlide.dataset.cloneId = index
 
-          this.sliderElement.insertAdjacentElement('beforeend', cloneSlide)
+        // Set the clone of the first original image last in the slider.
+        arrayOfAllSlideElements.map((slideElement, index) => {
           slideElement.dataset.slideId = index
+
+          if (index === 0) {
+            const cloneSlide = slideElement.cloneNode(true)
+            cloneSlide.classList.add('js-clone')
+            cloneSlide.dataset.cloneId = index
+
+            this.sliderElement.insertAdjacentElement('beforeend', cloneSlide)
+            // slideElement.dataset.slideId = index
+          }
         })
+
+        // Set the clone of the last original image first in the slider.
+        // arrayOfAllSlideElements.reverse().map((slideElement, index) => {
+        //   if (index === 0) {
+        //     const cloneSlide = slideElement.cloneNode(true)
+        //     cloneSlide.classList.add('js-clone')
+        //     cloneSlide.dataset.cloneId = index
+
+        //     this.sliderElement.insertAdjacentElement('afterbegin', cloneSlide)
+        //     // slideElement.dataset.slideId = index
+        //   }
+        // })
       }
     }
   }
@@ -622,6 +644,15 @@ export class CoralScrollCore {
       newSlide = 0
     } else {
       newSlide -= 1
+    }
+
+    if (this.sliderConfig.infinite === true) {
+      // If the next slide is a clone, set the next slide to the last original slide.
+      const allSlideElements = this.sliderElement.querySelectorAll('.slide:not(.js-hidden)')
+      const arrayOfAllSlideElements = allSlideElements ? [...allSlideElements] : null
+      const activeSlide = arrayOfAllSlideElements[newSlide]
+      const cloneId = activeSlide?.dataset.cloneId
+      newSlide = cloneId
     }
 
     // If the current slider is a thumbs slider, only set the position.
@@ -652,20 +683,18 @@ export class CoralScrollCore {
     const currentSliderStates = this.getCurrentSliderStates()
     let newSlide = currentSliderStates?.activeSlide
 
-    if (currentSliderStates?.isSlideTheSecondLastSlide) {
-      if (this.sliderConfig.infinite === true) {
-        const allSlideElements = this.sliderElement.querySelectorAll('.slide:not(.js-hidden)')
-        const arrayOfAllSlideElements = allSlideElements ? [...allSlideElements] : null
-        const activeSlide = arrayOfAllSlideElements[newSlide]
-        const cloneId = activeSlide?.dataset.cloneId
+    if (this.sliderConfig.infinite === true) {
+      const allSlideElements = this.sliderElement.querySelectorAll('.slide:not(.js-hidden)')
+      const arrayOfAllSlideElements = allSlideElements ? [...allSlideElements] : null
+      const activeSlide = arrayOfAllSlideElements[newSlide]
+      const cloneId = activeSlide?.dataset.cloneId
 
+      if (cloneId) {
         this.setScrollPositionWithoutScroll(Number(cloneId))
 
         newSlide = Number(cloneId) + 1
-
-        // newSlide = 0
       } else {
-        newSlide = 0
+        newSlide += 1
       }
     } else {
       newSlide += 1
@@ -751,6 +780,18 @@ export class CoralScrollCore {
 
     // Send new slide event.
     this.sendEventScrolledToNewSlide(slideIndex)
+
+    if (this.sliderConfig.autoScrollDuration) {
+      const handleIntervalNextSlide = this.debounce(() => {
+        if (this.isTouchDown === false) {
+          this.handleNextSlide()
+          this.coralScrollElement.style.setProperty('--animation-state', 'running')
+        }
+      }, 100)
+
+      this.handleInterval = setInterval(handleIntervalNextSlide, this.sliderConfig.autoScrollDuration)
+      this.coralScrollElement.style.setProperty('--animation-state', 'running')
+    }
   }
 
   /**
@@ -766,38 +807,6 @@ export class CoralScrollCore {
 
     // Send new slide event.
     this.sendEventScrolledToNewSlide(slideIndex)
-  }
-
-  /**
-   * Handle set new slide active. (with a debouncer)
-   */
-  handleScroll = () => {
-    const currentSlide = this.getCurrentSliderStates()
-
-    this.setActiveSlideClass(currentSlide?.activeSlide)
-    this.setActiveIndicator(currentSlide?.activeSlide)
-    this.setScrollPosition(currentSlide?.activeSlide)
-    this.setStylingArrows(currentSlide?.activeSlide)
-
-    if (currentSlide.isSlideTheSecondLastSlide) {
-      if (sliderConfig.infinite === true) {
-        const allSlideElements = this.sliderElement.querySelectorAll('.slide:not(.js-hidden)')
-        const arrayOfAllSlideElements = allSlideElements ? [...allSlideElements] : null
-        const activeSlide = arrayOfAllSlideElements[currentSlide.activeSlide]
-        const cloneId = activeSlide?.dataset.cloneId
-
-        this.setScrollPositionWithoutScroll(Number(cloneId))
-      }
-    } else if (currentSlide.isSlideTheLastSlide) {
-      if (sliderConfig.infinite === true) {
-        const allSlideElements = this.sliderElement.querySelectorAll('.slide:not(.js-hidden)')
-        const arrayOfAllSlideElements = allSlideElements ? [...allSlideElements] : null
-        const activeSlide = arrayOfAllSlideElements[currentSlide.activeSlide]
-        const cloneId = activeSlide?.dataset.cloneId
-
-        this.setScrollPositionWithoutScroll(Number(cloneId))
-      }
-    }
   }
 
   /**
@@ -862,7 +871,19 @@ export class CoralScrollCore {
     } else {
       this.sliderElement.addEventListener('scroll', this.debounce(() => {
         const currentSliderStates = this.getCurrentSliderStates()
-        const newSlide = Number(currentSliderStates?.activeSlide)
+        let newSlide = Number(currentSliderStates?.activeSlide)
+
+        if (this.sliderConfig.infinite === true) {
+          // Check if active slide is a clone. If so, set the active slide to the original slide.
+          const allSlideElements = this.sliderElement.querySelectorAll('.slide:not(.js-hidden)')
+          const arrayOfAllSlideElements = allSlideElements ? [...allSlideElements] : null
+          const activeSlide = arrayOfAllSlideElements[newSlide]
+          const cloneId = activeSlide?.dataset.cloneId
+
+          if (cloneId) {
+            this.setScrollPositionWithoutScroll(Number(cloneId))
+          }
+        }
 
         if (currentSliderStates === newSlide) {
           // Do nothing as it is the same active slide.
@@ -878,24 +899,26 @@ export class CoralScrollCore {
     if (this.sliderConfig.autoScrollDuration) {
       const handleIntervalNextSlide = this.debounce(() => {
         if (this.isTouchDown === false) {
-          // console.log('next');
-          // console.trace()
-
           this.handleNextSlide()
+          this.coralScrollElement.style.setProperty('--animation-state', 'running')
         }
       }, 100)
 
-      let handleInterval = setInterval(handleIntervalNextSlide, this.sliderConfig.autoScrollDuration)
+      const setDebounceInterval = this.debounce(() => {
+        this.handleInterval = setInterval(handleIntervalNextSlide, this.sliderConfig.autoScrollDuration)
+      }, 100)
+
+      setDebounceInterval()
 
       this.sliderElement.addEventListener('touchstart', () => {
         this.isTouchDown = true
-        clearInterval(handleInterval)
+        clearInterval(this.handleInterval)
         this.coralScrollElement.style.setProperty('--animation-state', 'paused')
       }, true, { passive: true })
 
       this.sliderElement.addEventListener('touchend', () => {
         this.isTouchDown = false
-        handleInterval = setInterval(handleIntervalNextSlide, this.sliderConfig.autoScrollDuration)
+        setDebounceInterval()
         this.coralScrollElement.style.setProperty('--animation-state', 'running')
       }, true, { passive: true })
 
@@ -903,34 +926,34 @@ export class CoralScrollCore {
         const targetElement = event.detail.sendFromSliderElement
 
         if (targetElement === this.coralScrollElement) {
-          clearInterval(handleInterval)
+          clearInterval(this.handleInterval)
           this.coralScrollElement.style.setProperty('--animation-state', 'paused')
         }
       }, true, { passive: true })
 
       // Check if someone is touching the slider.
-      // this.sliderElement.addEventListener('scrollstart', () => {
-      //   this.isTouchDown = true
-      //   clearInterval(handleInterval)
-      //   this.coralScrollElement.style.setProperty('--animation-state', 'paused')
-      // }, true, { passive: true })
+      this.sliderElement.addEventListener('scrollstart', () => {
+        this.isTouchDown = true
+        clearInterval(this.handleInterval)
+        this.coralScrollElement.style.setProperty('--animation-state', 'paused')
+      }, true, { passive: true })
 
-      // this.sliderElement.addEventListener('scrollend', () => {
-      //   this.isTouchDown = false
-      //   handleInterval = setInterval(handleIntervalNextSlide, this.sliderConfig.autoScrollDuration)
-      //   this.coralScrollElement.style.setProperty('--animation-state', 'running')
-      // }, true, { passive: true })
+      this.sliderElement.addEventListener('scrollend', () => {
+        this.isTouchDown = false
+        setDebounceInterval()
+        this.coralScrollElement.style.setProperty('--animation-state', 'running')
+      }, true, { passive: true })
 
       // Check if someone is touching the slider.
       this.sliderElement.addEventListener('mouseenter', () => {
         this.isTouchDown = true
-        clearInterval(handleInterval)
+        clearInterval(this.handleInterval)
         this.coralScrollElement.style.setProperty('--animation-state', 'paused')
       }, true, { passive: true })
 
       this.sliderElement.addEventListener('mouseleave', this.debounce(() => {
         this.isTouchDown = false
-        handleInterval = setInterval(handleIntervalNextSlide, this.sliderConfig.autoScrollDuration)
+        setDebounceInterval()
         this.coralScrollElement.style.setProperty('--animation-state', 'running')
       }, 100), true, { passive: true })
     }
