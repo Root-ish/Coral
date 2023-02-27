@@ -20,6 +20,8 @@ const build = () => {
     const classesName = path.parse(file).name
     const classesFile = path.join(scriptsDir, `${classesName}.js`)
     const logError = (event) => {
+      if (!event) return
+
       console.error(event)
     }
 
@@ -33,6 +35,8 @@ const build = () => {
       fs.writeFile(destPath, output.code, 'utf-8', (event) => logError(event))
     }
   })
+
+  return true
 }
 
 build()

@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "node src/scripts/utils/build-classes.js",
+    "dev": "nodemon src/scripts/utils/build-classes.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "trypublish": "npm publish || true"
   },
@@ -41,7 +42,13 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "lint-staged": "^10.5.4"
+    "lint-staged": "^10.5.4",
+    "uglify-js": "^3.17.4"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "./lib/**"
+    ]
   },
   "release": {
     "branches": [
@@ -49,6 +56,6 @@
     ]
   },
   "dependencies": {
-    "uglify-js": "^3.17.4"
+    "nodemon": "^2.0.20"
   }
 }
